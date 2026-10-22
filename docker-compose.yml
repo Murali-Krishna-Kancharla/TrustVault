@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  trustvault:
+    build: .
+    container_name: trustvault-app
+    ports:
+      - "8000:8000"
+    environment:
+      - SECRET_KEY=trustvault_super_secret_jwt_hmac_key_min_32_bytes_long_prod
+      - AUDIT_HMAC_SECRET=trustvault_immutable_audit_log_ledger_hmac_secret_key_2026
+      - STORAGE_ENCRYPTION_KEY=trustvault_aes_256_gcm_storage_master_key_32_bytes!
+      - DATABASE_URL=sqlite:///./trustvault.db
+      - VAULT_STORAGE_DIR=./vault_storage
+      - ACCESS_TOKEN_EXPIRE_MINUTES=120
+    volumes:
+      - trustvault-storage:/app/vault_storage
+      - trustvault-db:/app
+    restart: unless-stopped
+
+volumes:
+  trustvault-storage:
+  trustvault-db:
