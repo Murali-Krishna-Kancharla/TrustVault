@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: trustvault
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: AUDIT_HMAC_SECRET
+        generateValue: true
+      - key: STORAGE_ENCRYPTION_KEY
+        value: "trustvault_aes_256_gcm_storage_master_key_32_bytes!"
+      - key: DATABASE_URL
+        value: "sqlite:///./trustvault.db"
+      - key: VAULT_STORAGE_DIR
+        value: "./vault_storage"
