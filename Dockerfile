@@ -17,6 +17,8 @@ COPY . .
 # Ensure storage directory exists
 RUN mkdir -p vault_storage
 
+ENV PORT=7860
+EXPOSE 7860
 EXPOSE 8000
 
-CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT}"]
