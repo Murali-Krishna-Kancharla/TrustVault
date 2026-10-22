@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrustVault | Confidential Document Security & Audit Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Top Navigation -->
+    <header class="navbar">
+      <div class="nav-brand">
+        <div class="logo-shield">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="m9 12 2 2 4-4"/>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title">TrustVault</div>
+          <div class="brand-subtitle">Confidential Document Platform</div>
+        </div>
+      </div>
+
+      <!-- Quick Role Switcher for Demo / Judging -->
+      <div class="quick-switcher">
+        <span class="switcher-label">Demo Role Switch:</span>
+        <button class="pill-btn" onclick="quickLogin('admin@trustvault.local', 'AdminPass123!')">Admin</button>
+        <button class="pill-btn" onclick="quickLogin('alice.owner@trustvault.local', 'AlicePass123!')">Alice (Owner)</button>
+        <button class="pill-btn" onclick="quickLogin('carol.owner@trustvault.local', 'CarolPass123!')">Carol (Owner)</button>
+        <button class="pill-btn" onclick="quickLogin('bob.viewer@trustvault.local', 'BobPass123!')">Bob (Viewer)</button>
+        <button class="pill-btn" onclick="quickLogin('dave.viewer@trustvault.local', 'DavePass123!')">Dave (Viewer)</button>
+      </div>
+
+      <div class="user-meta" id="userMeta" style="display: none;">
+        <div class="user-avatar" id="avatarInitial">U</div>
+        <div class="user-info">
+          <div class="user-name" id="currentUserName">Loading...</div>
+          <div class="user-role-badge" id="currentUserRole">Viewer</div>
+        </div>
+        <button class="btn-secondary btn-sm" onclick="logout()">Sign Out</button>
+      </div>
+    </header>
+
+    <!-- Unauthenticated Login View -->
+    <main class="login-view" id="loginView">
+      <div class="login-card">
+        <div class="login-header">
+          <div class="login-badge">ZERO-TRUST DOCUMENT VAULT</div>
+          <h2>Sign in to TrustVault</h2>
+          <p>Every document is protected with AES-256-GCM encryption, per-request authorization, and tamper-evident audit chaining.</p>
+        </div>
+
+        <form id="loginForm" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label for="loginEmail">Corporate Email</label>
+            <input type="email" id="loginEmail" placeholder="e.g. alice.owner@trustvault.local" required value="alice.owner@trustvault.local">
+          </div>
+          <div class="form-group">
+            <label for="loginPassword">Password</label>
+            <input type="password" id="loginPassword" placeholder="••••••••••••" required value="AlicePass123!">
+          </div>
+          <button type="submit" class="btn-primary btn-block">Authenticate Session</button>
+        </form>
+
+        <div class="quick-credentials">
+          <div class="creds-title">Available Seed Credentials:</div>
+          <div class="cred-item" onclick="fillCreds('admin@trustvault.local', 'AdminPass123!')">
+            <strong>Admin:</strong> admin@trustvault.local / AdminPass123!
+          </div>
+          <div class="cred-item" onclick="fillCreds('alice.owner@trustvault.local', 'AlicePass123!')">
+            <strong>Owner 1 (HR):</strong> alice.owner@trustvault.local / AlicePass123!
+          </div>
+          <div class="cred-item" onclick="fillCreds('carol.owner@trustvault.local', 'CarolPass123!')">
+            <strong>Owner 2 (Legal):</strong> carol.owner@trustvault.local / CarolPass123!
+          </div>
+          <div class="cred-item" onclick="fillCreds('bob.viewer@trustvault.local', 'BobPass123!')">
+            <strong>Viewer 1 (Auditor):</strong> bob.viewer@trustvault.local / BobPass123!
+          </div>
+          <div class="cred-item" onclick="fillCreds('dave.viewer@trustvault.local', 'DavePass123!')">
+            <strong>Viewer 2 (Finance):</strong> dave.viewer@trustvault.local / DavePass123!
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Authenticated Dashboard View -->
+    <main class="dashboard-view" id="dashboardView" style="display: none;">
+      <!-- Navigation Tabs -->
+      <nav class="tabs-nav">
+        <button class="tab-btn active" id="tabDocsBtn" onclick="switchTab('documents')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          Document Vault
+        </button>
+        <button class="tab-btn" id="tabAuditBtn" onclick="switchTab('audit')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Tamper-Evident Audit Trail
+        </button>
+        <button class="tab-btn" id="tabAdminBtn" onclick="switchTab('admin')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          SecOps & Admin Console
+        </button>
+        <button class="tab-btn" id="tabPlaygroundBtn" onclick="switchTab('playground')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Security Attack Simulator
+        </button>
+      </nav>
+
+      <!-- TAB 1: Document Vault -->
+      <section class="tab-content" id="documentsTab">
+        <div class="action-bar">
+          <div class="search-box">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="searchInput" placeholder="Search documents by title, description..." oninput="handleSearch()">
+          </div>
+
+          <div class="filter-group">
+            <select id="categoryFilter" onchange="handleSearch()">
+              <option value="All">All Categories</option>
+              <option value="HR">HR & Compensation</option>
+              <option value="Legal">Legal & Contracts</option>
+              <option value="Compliance">Compliance & Audit</option>
+              <option value="Financial">Financial Reports</option>
+            </select>
+
+            <select id="classificationFilter" onchange="handleSearch()">
+              <option value="All">All Classifications</option>
+              <option value="Confidential">Confidential</option>
+              <option value="Restricted">Restricted</option>
+              <option value="Internal">Internal</option>
+            </select>
+          </div>
+
+          <button class="btn-primary" id="uploadBtn" onclick="openUploadModal()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Upload Document
+          </button>
+        </div>
+
+        <!-- Security Invariant Notice Banner -->
+        <div class="security-banner">
+          <div class="security-banner-icon">🔒</div>
+          <div class="security-banner-text">
+            <strong>Server-Side Isolation Active:</strong> You only see documents you own or were explicitly granted access to. Zero metadata or existence leaks of unpermitted files.
+          </div>
+        </div>
+
+        <!-- Documents Table -->
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Document Name</th>
+                <th>Classification</th>
+                <th>Category</th>
+                <th>Owner</th>
+                <th>Your Permission</th>
+                <th>Size / SHA-256</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="documentsTableBody">
+              <tr>
+                <td colspan="7" class="text-center py-4">Loading documents...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TAB 2: Tamper-Evident Audit Trail -->
+      <section class="tab-content" id="auditTab" style="display: none;">
+        <div class="audit-header">
+          <div>
+            <h2>Tamper-Evident Cryptographic Ledger</h2>
+            <p>Every event is cryptographically linked to the previous entry via SHA-256 hash chaining and signed with HMAC. Refused access attempts are captured as immutable evidence.</p>
+          </div>
+          <div class="audit-actions">
+            <button class="btn-verify" onclick="verifyAuditLedger()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              Verify Ledger Cryptographic Integrity
+            </button>
+          </div>
+        </div>
+
+        <!-- Verification Result Banner -->
+        <div id="verifyResult" class="verification-box" style="display: none;"></div>
+
+        <!-- Audit Filters -->
+        <div class="audit-filters">
+          <div class="filter-item">
+            <label>Filter by Status:</label>
+            <select id="auditStatusFilter" onchange="loadAuditLogs()">
+              <option value="ALL">All Outcomes</option>
+              <option value="REFUSED">REFUSED (Security Alerts)</option>
+              <option value="SUCCESS">SUCCESS</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label>Filter by Action:</label>
+            <select id="auditActionFilter" onchange="loadAuditLogs()">
+              <option value="ALL">All Actions</option>
+              <option value="DOCUMENT_DOWNLOAD">Downloads</option>
+              <option value="DOCUMENT_UPLOAD">Uploads</option>
+              <option value="PERMISSION_GRANT">Permission Grants</option>
+              <option value="PERMISSION_REVOKE">Permission Revocations</option>
+              <option value="USER_LOGIN">Logins</option>
+            </select>
+          </div>
+          <button class="btn-secondary btn-sm" onclick="loadAuditLogs()">Refresh Ledger</button>
+        </div>
+
+        <!-- Audit Table -->
+        <div class="table-container">
+          <table class="data-table audit-table">
+            <thead>
+              <tr>
+                <th>Seq #</th>
+                <th>Timestamp (UTC)</th>
+                <th>Actor</th>
+                <th>Action</th>
+                <th>Outcome</th>
+                <th>Target ID</th>
+                <th>Details</th>
+                <th>Hash Chain Link (SHA-256)</th>
+              </tr>
+            </thead>
+            <tbody id="auditTableBody">
+              <tr>
+                <td colspan="8" class="text-center py-4">Loading audit logs...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TAB 3: SecOps & Admin Console -->
+      <section class="tab-content" id="adminTab" style="display: none;">
+        <div class="admin-header">
+          <h2>SecOps Governance & Administrative Oversight</h2>
+          <p>Separation of Duties: Administrators govern users, monitor security spikes, and verify ledger integrity, but cannot inspect confidential document contents without explicit grants.</p>
+        </div>
+
+        <div class="stat-grid" id="adminStatGrid">
+          <div class="stat-card">
+            <div class="stat-label">Total Documents in Vault</div>
+            <div class="stat-val" id="statDocs">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Registered Users</div>
+            <div class="stat-val" id="statUsers">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Audit Events Chained</div>
+            <div class="stat-val" id="statAudit">-</div>
+          </div>
+          <div class="stat-card stat-alert">
+            <div class="stat-label">Refused Access Attempts</div>
+            <div class="stat-val" id="statRefused">-</div>
+          </div>
+        </div>
+
+        <div class="admin-sections">
+          <div class="admin-box">
+            <h3>User Lifecycle & Immediate Revocation</h3>
+            <p>Deactivating a user instantly increments their session epoch (`token_version`), immediately invalidating all active JWTs.</p>
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="adminUsersTableBody">
+                  <tr>
+                    <td colspan="5" class="text-center py-4">Loading user accounts...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: Security Attack Simulator -->
+      <section class="tab-content" id="playgroundTab" style="display: none;">
+        <div class="playground-header">
+          <h2>TrustVault Attack Simulator & Defense Demonstrator</h2>
+          <p>Interact with live attack vectors to verify the 3 core non-negotiable guarantees against the server.</p>
+        </div>
+
+        <div class="attack-grid">
+          <!-- Attack Card 1 -->
+          <div class="attack-card">
+            <div class="attack-badge">TEST 1: IDOR & BYPASS</div>
+            <h4>Direct Object Reference Bypass</h4>
+            <p>Simulate an unauthorized viewer directly requesting download of Alice's confidential salary review by raw UUID.</p>
+            <button class="btn-danger" onclick="runIdorAttackTest()">Execute IDOR Attack</button>
+            <div class="attack-output" id="outputIdor">Awaiting trigger...</div>
+          </div>
+
+          <!-- Attack Card 2 -->
+          <div class="attack-card">
+            <div class="attack-badge">TEST 2: IMMEDIATE REVOCATION</div>
+            <h4>Immediate Revocation Enforcement</h4>
+            <p>Grant access to a user, perform a verified download, immediately revoke access, and retry the download in the same session.</p>
+            <button class="btn-warning" onclick="runRevocationAttackTest()">Execute Revocation Test</button>
+            <div class="attack-output" id="outputRevocation">Awaiting trigger...</div>
+          </div>
+
+          <!-- Attack Card 3 -->
+          <div class="attack-card">
+            <div class="attack-badge">TEST 3: AUDIT TAMPER PROOF</div>
+            <h4>Ledger Tamper Detection</h4>
+            <p>Runs cryptographic verification of the SHA-256 chain and HMAC signatures to prove that altering even 1 byte in the database is detected.</p>
+            <button class="btn-verify" onclick="runTamperProofTest()">Execute Chain Verification</button>
+            <div class="attack-output" id="outputTamper">Awaiting trigger...</div>
+          </div>
+
+          <!-- Attack Card 4 -->
+          <div class="attack-card">
+            <div class="attack-badge">TEST 4: FILE VALIDATION</div>
+            <h4>Polyglot & Executable Upload Rejection</h4>
+            <p>Simulate uploading a Windows executable disguised as a PDF file (`malware.exe` renamed to `.pdf`).</p>
+            <button class="btn-danger" onclick="runMaliciousUploadTest()">Execute Malicious Upload</button>
+            <div class="attack-output" id="outputUpload">Awaiting trigger...</div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Upload Document Modal -->
+    <div class="modal-overlay" id="uploadModal" style="display: none;">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3>Secure Document Upload</h3>
+          <button class="close-btn" onclick="closeUploadModal()">&times;</button>
+        </div>
+        <form onsubmit="handleUploadSubmit(event)">
+          <div class="form-group">
+            <label>Document Title</label>
+            <input type="text" id="uploadTitle" required placeholder="e.g. Q4 Executive Strategy Memo">
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <select id="uploadCategory">
+              <option value="HR">HR & Compensation</option>
+              <option value="Legal">Legal & Contracts</option>
+              <option value="Compliance">Compliance & Audit</option>
+              <option value="Financial">Financial Reports</option>
+              <option value="Engineering">Engineering & IP</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Classification Level</label>
+            <select id="uploadClassification">
+              <option value="Confidential">Confidential</option>
+              <option value="Restricted">Restricted</option>
+              <option value="Internal">Internal</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Description / Metadata</label>
+            <textarea id="uploadDescription" rows="3" placeholder="Context and scope of confidentiality..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Select File (PDF, DOCX, XLSX, PNG, JPEG, TXT, CSV - Max 25MB)</label>
+            <input type="file" id="uploadFile" required>
+            <div class="field-hint">Validated via Magic Bytes; encrypted at rest with AES-256-GCM.</div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeUploadModal()">Cancel</button>
+            <button type="submit" class="btn-primary">Encrypt & Upload to Vault</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Permissions / Access Control Modal -->
+    <div class="modal-overlay" id="permissionsModal" style="display: none;">
+      <div class="modal-box modal-lg">
+        <div class="modal-header">
+          <div>
+            <h3>Access Control & Permission Management</h3>
+            <div class="modal-sub" id="permDocTitle">Document Name</div>
+          </div>
+          <button class="close-btn" onclick="closePermissionsModal()">&times;</button>
+        </div>
+
+        <!-- AI Assistant Recommendation Box -->
+        <div class="ai-box">
+          <div class="ai-box-header">
+            <div class="ai-pill">AI Access Advisor</div>
+            <button class="btn-secondary btn-sm" onclick="fetchAiRecommendation()">Ask AI for Suggestions</button>
+          </div>
+          <div id="aiSuggestionContent" class="ai-content">
+            Click "Ask AI for Suggestions" to receive least-privilege role recommendations based on document classification. (Note: The machine never widens access automatically).
+          </div>
+        </div>
+
+        <!-- Current Grants Table -->
+        <div class="table-container mb-4">
+          <div class="section-title">Explicit Permission Grants:</div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Collaborator</th>
+                <th>Email</th>
+                <th>Permission Level</th>
+                <th>Granted By</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="permissionsTableBody">
+              <tr>
+                <td colspan="5" class="text-center py-3">Loading permissions...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Grant Access Form -->
+        <div class="grant-form-box">
+          <div class="section-title">Grant Access to Named Collaborator:</div>
+          <div class="grant-inline-form">
+            <select id="grantUserSelect">
+              <option value="">Select Collaborator...</option>
+            </select>
+            <select id="grantLevelSelect">
+              <option value="read">Read-Only (View & Download)</option>
+              <option value="edit">Edit (Metadata & Updates)</option>
+            </select>
+            <button class="btn-primary" onclick="submitGrantPermission()">Grant Access</button>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="closePermissionsModal()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
