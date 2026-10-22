@@ -61,6 +61,7 @@ def on_startup():
     seed_database()
 
 @app.get("/")
+@app.head("/")
 def serve_index():
     return FileResponse(STATIC_DIR / "index.html")
 
